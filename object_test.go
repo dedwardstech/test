@@ -112,18 +112,7 @@ func Test_Object_Has(tt *testing.T) {
 	for _, test := range tests {
 		tt.Run(test.name, func(t *testing.T) {
 			res, err := test.obj.Has(test.path)
-			if test.err == nil && err != nil {
-				t.Errorf("got unexpected err: %s", err.Error())
-				return
-			}
-
-			if test.err != nil && err == nil {
-				t.Errorf("wanted err %s, but got none", test.err.Error())
-				return
-			}
-
-			if test.err != nil && (test.err.Error() != err.Error()) {
-				t.Errorf("wanted err %s; got %s", test.err.Error(), err.Error())
+			if !compareErrors(t, test.err, err) {
 				return
 			}
 
@@ -133,4 +122,108 @@ func Test_Object_Has(tt *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_Object_Get(tt *testing.T) {
+	tests := []struct {
+		name     string
+		obj      Object
+		path     string
+		expected interface{}
+		err      error
+	}{
+		{
+			name: "retrieves value from a simple path",
+			obj: Object{
+				"value": "foo",
+			},
+			path:     "value",
+			expected: "foo",
+			err:      nil,
+		},
+		{
+			name: "retrieves value from a nested path",
+			obj: Object{
+				"value": map[string]interface{}{
+					"othervalue": map[string]interface{}{
+						"end": "foo",
+					},
+				},
+			},
+			path:     "value.othervalue.end",
+			expected: "foo",
+			err:      nil,
+		},
+		{
+			name: "retrieves object values from a nested path",
+			obj: Object{
+				"value": map[string]interface{}{
+					"othervalue": map[string]interface{}{
+						"end": "foo",
+					},
+				},
+			},
+			path: "value.othervalue",
+			expected: map[string]interface{}{
+				"end": "foo",
+			},
+			err: nil,
+		},
+		{
+			name: "throws an error if the property path tries index into a non-map type",
+			obj: Object{
+				"value": map[string]interface{}{
+					"othervalue": "foo",
+				},
+			},
+			path:     "value.othervalue.end",
+			expected: nil,
+			err:      ErrPathIndexFailed,
+		},
+		{
+			name: "throws an error if the property path does not exist",
+			obj: Object{
+				"value": map[string]interface{}{
+					"othervalue": map[string]interface{}{
+						"end": "foo",
+					},
+				},
+			},
+			path:     "value.otherothervalue.end",
+			expected: nil,
+			err:      ErrPropertyDoesNotExist,
+		},
+	}
+
+	for _, test := range tests {
+		tt.Run(test.name, func(t *testing.T) {
+			res, err := test.obj.Get(test.path)
+			if !compareErrors(t, test.err, err) {
+				return
+			}
+
+			if !reflect.DeepEqual(test.expected, res) {
+				t.Errorf("wanted result %v; got %v", test.expected, res)
+			}
+		})
+	}
+}
+
+func compareErrors(t *testing.T, expected, got error) bool {
+	if expected == nil && got != nil {
+		t.Errorf("got unexpected err: %s", got.Error())
+		return false
+	}
+
+	if expected != nil && got == nil {
+		t.Errorf("wanted err %s, but got none", expected.Error())
+		return false
+	}
+
+	if expected != nil && (expected.Error() != got.Error()) {
+		t.Errorf("wanted err %s; got %s", expected.Error(), got.Error())
+		return false
+	}
+
+	return true
 }

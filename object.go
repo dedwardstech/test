@@ -2,11 +2,17 @@ package jsontest
 
 import (
 	"encoding/json"
-	"errors"
+
+	"github.com/pkg/errors"
 )
 
 var (
-	// ErrPathIndexFailed indicates the path given points to a value that isn't a map
+	// ErrPathIndexFailed indicates the path given points to a value that isn't a map.
+	//
+	// Given a path "my.cool.path", where "my.cool" is filled by a primitive value.
+	// The path exists, but you can't go any further because my.cool isn't a map.
+	// Where as ErrPropertyDoesNotExist indicates that the path simply doesn't
+	// exist in the payload.
 	ErrPathIndexFailed = errors.New("cannot index into non-map type")
 
 	// ErrPropertyDoesNotExist indicates that the path given does not exist in the JSON
@@ -44,4 +50,14 @@ func (o *Object) Has(propertyPath string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// Get is used to when you ask the question, "What value is associated with this property path?"
+func (o *Object) Get(propertyPath string) (interface{}, error) {
+	val, err := parsePathValue(*o, propertyPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
 }
