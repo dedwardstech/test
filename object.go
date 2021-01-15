@@ -35,3 +35,13 @@ func Parse(payload []byte) (Object, error) {
 
 	return ParseMap(m), nil
 }
+
+// Has is used when you ask the question, "Does this property path exist?"
+func (o *Object) Has(propertyPath string) (bool, error) {
+	_, err := parsePathValue(*o, propertyPath)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
