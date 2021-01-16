@@ -13,7 +13,7 @@ func Test_ParseMap(t *testing.T) {
 		},
 	}
 
-	obj := ParseMap(j)
+	obj := Set(j)
 
 	objType := reflect.TypeOf(obj)
 	name := objType.Name()

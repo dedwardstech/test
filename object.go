@@ -9,8 +9,8 @@ import (
 // about the object
 type Object map[string]interface{}
 
-// ParseMap casts a map as a jsontest.Object type
-func ParseMap(m map[string]interface{}) Object {
+// Set casts a map as a jsontest.Object type
+func Set(m map[string]interface{}) Object {
 	var obj Object = m
 
 	return obj
@@ -24,7 +24,7 @@ func Parse(payload []byte) (Object, error) {
 		return nil, err
 	}
 
-	return ParseMap(m), nil
+	return Set(m), nil
 }
 
 // Has is used when you ask the question, "Does this property path exist?"
