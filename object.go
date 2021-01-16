@@ -2,21 +2,6 @@ package jsontest
 
 import (
 	"encoding/json"
-
-	"github.com/pkg/errors"
-)
-
-var (
-	// ErrPathIndexFailed indicates the path given points to a value that isn't a map.
-	//
-	// Given a path "my.cool.path", where "my.cool" is filled by a primitive value.
-	// The path exists, but you can't go any further because my.cool isn't a map.
-	// Where as ErrPropertyDoesNotExist indicates that the path simply doesn't
-	// exist in the payload.
-	ErrPathIndexFailed = errors.New("cannot index into non-map type")
-
-	// ErrPropertyDoesNotExist indicates that the path given does not exist in the JSON
-	ErrPropertyDoesNotExist = errors.New("json path does not exist")
 )
 
 // Object represents a JSON object with some methods
