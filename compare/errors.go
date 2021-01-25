@@ -1,9 +1,9 @@
 package compare
 
 import (
-    "fmt"
+	"fmt"
 
-    "github.com/pkg/errors"
+	"errors"
 )
 
 // Errors throws an error if the error you expected is different
@@ -23,17 +23,17 @@ import (
 //   Errors("err a", "err b") => wanted err err a; got err b
 func Errors(expected, actual error) error {
 
-    if expected == nil && actual != nil {
-        return errors.New(fmt.Sprintf("got unexpected error: %s", actual.Error()))
-    }
+	if expected == nil && actual != nil {
+		return errors.New(fmt.Sprintf("got unexpected error: %s", actual.Error()))
+	}
 
-    if expected != nil && actual == nil {
-        return errors.New(fmt.Sprintf("wanted err %s, but got none", expected.Error()))
-    }
+	if expected != nil && actual == nil {
+		return errors.New(fmt.Sprintf("wanted err %s, but got none", expected.Error()))
+	}
 
-    if expected != nil && (expected.Error() != actual.Error()) {
-        return errors.New(fmt.Sprintf("wanted err %s; got %s", expected.Error(), actual.Error()))
-    }
+	if expected != nil && (expected.Error() != actual.Error()) {
+		return errors.New(fmt.Sprintf("wanted err %s; got %s", expected.Error(), actual.Error()))
+	}
 
-    return nil
+	return nil
 }
