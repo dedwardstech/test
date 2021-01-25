@@ -4,12 +4,14 @@ package jsont
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 )
 
 var (
 	strType     = reflect.TypeOf("")
 	boolType    = reflect.TypeOf(true)
+	intType     = reflect.TypeOf(1)
 	int64Type   = reflect.TypeOf(int64(1))
 	float64Type = reflect.TypeOf(1.0)
 	objType     = reflect.TypeOf(Object{})
@@ -104,6 +106,21 @@ func (o Object) GetInt64(propertyPath string) (int64, error) {
 	return num, nil
 }
 
+// GetBool is used to extract a key whose value is an bool
+func (o Object) GetBool(propertyPath string) (bool, error) {
+	val, err := parsePathValue(o, propertyPath)
+	if err != nil {
+		return false, err
+	}
+
+	b, ok := val.(bool)
+	if !ok {
+		return false, NewTypeCastError(boolType, reflect.TypeOf(val))
+	}
+
+	return b, nil
+}
+
 // GetSlice extracts a slice from an object
 func (o Object) GetSlice(propertyPath string) ([]interface{}, error) {
 	val, err := parsePathValue(o, propertyPath)
@@ -121,30 +138,18 @@ func (o Object) GetSlice(propertyPath string) ([]interface{}, error) {
 
 // GetObj is used to extract a key whose value is an object
 func (o Object) GetObj(propertyPath string) (Object, error) {
+	fmt.Println("getting value", propertyPath)
 	val, err := parsePathValue(o, propertyPath)
 	if err != nil {
 		return nil, err
 	}
 
-	obj, ok := val.(Object)
+	fmt.Printf("got %v\n", val)
+	m, ok := val.(map[string]interface{})
 	if !ok {
 		return nil, NewTypeCastError(objType, reflect.TypeOf(val))
 	}
 
+	var obj Object = m
 	return obj, nil
-}
-
-// GetBool is used to extract a key whose value is an bool
-func (o Object) GetBool(propertyPath string) (bool, error) {
-	val, err := parsePathValue(o, propertyPath)
-	if err != nil {
-		return false, err
-	}
-
-	b, ok := val.(bool)
-	if !ok {
-		return false, NewTypeCastError(boolType, reflect.TypeOf(val))
-	}
-
-	return b, nil
 }

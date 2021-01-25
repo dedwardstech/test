@@ -127,127 +127,584 @@ func Test_Object_Has(tt *testing.T) {
 	}
 }
 
-//func Test_Object_Get(tt *testing.T) {
-//	tests := []struct {
-//		name     string
-//		obj      Object
-//		path     string
-//		expected interface{}
-//		err      error
-//	}{
-//		{
-//			name: "retrieves value from a simple path",
-//			obj: Object{
-//				"value": "foo",
-//			},
-//			path:     "value",
-//			expected: "foo",
-//			err:      nil,
-//		},
-//		{
-//			name: "retrieves value from a nested path",
-//			obj: Object{
-//				"value": map[string]interface{}{
-//					"othervalue": map[string]interface{}{
-//						"end": "foo",
-//					},
-//				},
-//			},
-//			path:     "value.othervalue.end",
-//			expected: "foo",
-//			err:      nil,
-//		},
-//		{
-//			name: "retrieves object values from a nested path",
-//			obj: Object{
-//				"value": map[string]interface{}{
-//					"othervalue": map[string]interface{}{
-//						"end": "foo",
-//					},
-//				},
-//			},
-//			path: "value.othervalue",
-//			expected: map[string]interface{}{
-//				"end": "foo",
-//			},
-//			err: nil,
-//		},
-//		{
-//			name: "throws an error if the property path tries index into a non-map type",
-//			obj: Object{
-//				"value": map[string]interface{}{
-//					"othervalue": "foo",
-//				},
-//			},
-//			path:     "value.othervalue.end",
-//			expected: nil,
-//			err:      ErrPathIndexFailed,
-//		},
-//		{
-//			name: "throws an error if the property path does not exist",
-//			obj: Object{
-//				"value": map[string]interface{}{
-//					"othervalue": map[string]interface{}{
-//						"end": "foo",
-//					},
-//				},
-//			},
-//			path:     "value.otherothervalue.end",
-//			expected: nil,
-//			err:      ErrPropertyDoesNotExist,
-//		},
-//	}
-//
-//	for _, testcase := range tests {
-//		tt.Run(testcase.name, func(t *testing.T) {
-//			var v interface{}
-//			err := testcase.obj.Get(testcase.path, &v)
-//			if e := test.CompareErrors(testcase.err, err); e != nil {
-//				t.Error(e)
-//				return
-//			}
-//
-//			if !reflect.DeepEqual(testcase.expected, v) {
-//				t.Errorf("wanted result %v; got %v", testcase.expected, v)
-//			}
-//		})
-//	}
-//}
+func TestObject_Get(tt *testing.T) {
+	testcases := []struct {
+		name, path string
+		obj        Object
+		expected   interface{}
+		err        error
+	}{
+		{
+			name: "gets an interface value from a simple Object",
+			path: "foo",
+			obj: Object{
+				"foo": "bar",
+			},
+			expected: "bar",
+			err:      nil,
+		},
+		{
+			name: "gets an interface value from a nested Object",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": 1.0,
+					},
+				},
+			},
+			expected: 1.0,
+			err:      nil,
+		},
+		{
+			name: "throws an error if the path exists but you cant index into it",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": true,
+				},
+			},
+			expected: nil,
+			err:      ErrPathIndexFailed,
+		},
+		{
+			name: "throws an error if the path does not exist",
+			path: "foo.bar.foobar",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": 1.0,
+					},
+				},
+			},
+			expected: nil,
+			err:      ErrPropertyDoesNotExist,
+		},
+	}
 
-//func Test_Object_Keys(tt *testing.T) {
-//	tests := []struct {
-//		name     string
-//		obj      Object
-//		expected []string
-//	}{
-//		{
-//			name: "returns keys for a simple object",
-//			obj: Object{
-//				"key1": true,
-//				"key2": "foo",
-//				"key3": 1,
-//				"key4": nil,
-//			},
-//			expected: []string{"key1", "key2", "key3", "key4"},
-//		},
-//	}
-//
-//	for _, tc := range tests {
-//		tt.Run(tc.name, func(t *testing.T) {
-//			res := tc.obj.Keys()
-//			rSize, eSize := len(res), len(tc.expected)
-//			if rSize != eSize {
-//				t.Errorf("expected keys to be %v: got %v", tc.expected, res)
-//				return
-//			}
-//
-//			i := 0
-//			for i < eSize {
-//				if res[i] != tc.expected[i] {
-//					t.Errorf("expected keys to be %v: got %v", tc.expected, res)
-//				}
-//				i++
-//			}
-//		})
-//	}
-//}
+	for _, tc := range testcases {
+		tt.Run(tc.name, func(t *testing.T) {
+			val, err := tc.obj.Get(tc.path)
+			testErr := compare.Errors(tc.err, err)
+			if testErr != nil {
+				t.Error(testErr)
+				return
+			}
+
+			if val != tc.expected {
+				t.Errorf("expected value: %v, got: %v", tc.expected, val)
+			}
+		})
+	}
+}
+
+func TestObject_GetStr(tt *testing.T) {
+	testcases := []struct {
+		name, path string
+		obj        Object
+		expected   string
+		err        error
+	}{
+		{
+			name: "gets a string value from a simple object",
+			path: "foo",
+			obj: Object{
+				"foo": "str",
+			},
+			expected: "str",
+			err:      nil,
+		},
+		{
+			name: "gets a string value from a nested object",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": "str",
+					},
+				},
+			},
+			expected: "str",
+			err:      nil,
+		},
+		{
+			name: "throws an error if value isnt a string",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": 1,
+					},
+				},
+			},
+			expected: "",
+			err:      NewTypeCastError(strType, intType),
+		},
+		{
+			name: "throws an error if the path exists but you cant index into it",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": true,
+				},
+			},
+			expected: "",
+			err:      ErrPathIndexFailed,
+		},
+		{
+			name: "throws an error if the path does not exist",
+			path: "foo.bar.foobar",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": "str",
+					},
+				},
+			},
+			expected: "",
+			err:      ErrPropertyDoesNotExist,
+		},
+	}
+
+	for _, tc := range testcases {
+		tt.Run(tc.name, func(t *testing.T) {
+			val, err := tc.obj.GetStr(tc.path)
+			testErr := compare.Errors(tc.err, err)
+			if testErr != nil {
+				t.Error(testErr)
+				return
+			}
+
+			if val != tc.expected {
+				t.Errorf("expected value: %v, got: %v", tc.expected, val)
+			}
+		})
+	}
+}
+
+func TestObject_GetNumber(tt *testing.T) {
+	testcases := []struct {
+		name, path string
+		obj        Object
+		expected   float64
+		err        error
+	}{
+		{
+			name: "gets a float64 value from a simple object",
+			path: "foo",
+			obj: Object{
+				"foo": float64(1),
+			},
+			expected: float64(1),
+			err:      nil,
+		},
+		{
+			name: "gets a float64 value from a nested object",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": float64(2),
+					},
+				},
+			},
+			expected: float64(2),
+			err:      nil,
+		},
+		{
+			name: "throws an error if value isnt a number",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": "str",
+					},
+				},
+			},
+			expected: float64(-1),
+			err:      NewTypeCastError(float64Type, strType),
+		},
+		{
+			name: "throws an error if the path exists but you cant index into it",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": true,
+				},
+			},
+			expected: float64(-1),
+			err:      ErrPathIndexFailed,
+		},
+		{
+			name: "throws an error if the path does not exist",
+			path: "foo.bar.foobar",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": "str",
+					},
+				},
+			},
+			expected: float64(-1),
+			err:      ErrPropertyDoesNotExist,
+		},
+	}
+
+	for _, tc := range testcases {
+		tt.Run(tc.name, func(t *testing.T) {
+			val, err := tc.obj.GetNumber(tc.path)
+			testErr := compare.Errors(tc.err, err)
+			if testErr != nil {
+				t.Error(testErr)
+				return
+			}
+
+			if val != tc.expected {
+				t.Errorf("expected value: %v, got: %v", tc.expected, val)
+			}
+		})
+	}
+}
+
+func TestObject_GetInt64(tt *testing.T) {
+	testcases := []struct {
+		name, path string
+		obj        Object
+		expected   int64
+		err        error
+	}{
+		{
+			name: "gets a string value from a simple object",
+			path: "foo",
+			obj: Object{
+				"foo": int64(1000),
+			},
+			expected: int64(1000),
+			err:      nil,
+		},
+		{
+			name: "gets a string value from a nested object",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": int64(1000),
+					},
+				},
+			},
+			expected: int64(1000),
+			err:      nil,
+		},
+		{
+			name: "throws an error if value isnt an int64",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": float64(1000),
+					},
+				},
+			},
+			expected: int64(-1),
+			err:      NewTypeCastError(int64Type, float64Type),
+		},
+		{
+			name: "throws an error if the path exists but you cant index into it",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": true,
+				},
+			},
+			expected: int64(-1),
+			err:      ErrPathIndexFailed,
+		},
+		{
+			name: "throws an error if the path does not exist",
+			path: "foo.bar.foobar",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": int64(1000),
+					},
+				},
+			},
+			expected: int64(-1),
+			err:      ErrPropertyDoesNotExist,
+		},
+	}
+
+	for _, tc := range testcases {
+		tt.Run(tc.name, func(t *testing.T) {
+			val, err := tc.obj.GetInt64(tc.path)
+			testErr := compare.Errors(tc.err, err)
+			if testErr != nil {
+				t.Error(testErr)
+				return
+			}
+
+			if val != tc.expected {
+				t.Errorf("expected value: %v, got: %v", tc.expected, val)
+			}
+		})
+	}
+}
+
+func TestObject_GetBool(tt *testing.T) {
+	testcases := []struct {
+		name, path string
+		obj        Object
+		expected   bool
+		err        error
+	}{
+		{
+			name: "gets a string value from a simple object",
+			path: "foo",
+			obj: Object{
+				"foo": false,
+			},
+			expected: false,
+			err:      nil,
+		},
+		{
+			name: "gets a string value from a nested object",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": false,
+					},
+				},
+			},
+			expected: false,
+			err:      nil,
+		},
+		{
+			name: "throws an error if value isnt an int64",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": 1,
+					},
+				},
+			},
+			expected: false,
+			err:      NewTypeCastError(boolType, intType),
+		},
+		{
+			name: "throws an error if the path exists but you cant index into it",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": true,
+				},
+			},
+			expected: false,
+			err:      ErrPathIndexFailed,
+		},
+		{
+			name: "throws an error if the path does not exist",
+			path: "foo.bar.foobar",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": false,
+					},
+				},
+			},
+			expected: false,
+			err:      ErrPropertyDoesNotExist,
+		},
+	}
+
+	for _, tc := range testcases {
+		tt.Run(tc.name, func(t *testing.T) {
+			val, err := tc.obj.GetBool(tc.path)
+			testErr := compare.Errors(tc.err, err)
+			if testErr != nil {
+				t.Error(testErr)
+				return
+			}
+
+			if val != tc.expected {
+				t.Errorf("expected value: %v, got: %v", tc.expected, val)
+			}
+		})
+	}
+}
+
+func TestObject_GetSlice(tt *testing.T) {
+	testcases := []struct {
+		name, path string
+		obj        Object
+		expected   []interface{}
+		err        error
+	}{
+		{
+			name: "gets a slice value from a simple object",
+			path: "foo",
+			obj: Object{
+				"foo": []interface{}{1, 2, 3},
+			},
+			expected: []interface{}{1, 2, 3},
+			err:      nil,
+		},
+		{
+			name: "gets a slice value from a nested object",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": []interface{}{1, 2, 3},
+					},
+				},
+			},
+			expected: []interface{}{1, 2, 3},
+			err:      nil,
+		},
+		{
+			name: "throws an error if value isnt a slice",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": "str",
+					},
+				},
+			},
+			expected: nil,
+			err:      NewTypeCastError(sliceType, strType),
+		},
+		{
+			name: "throws an error if the path exists but you cant index into it",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": []interface{}{1, 2, 3},
+				},
+			},
+			expected: nil,
+			err:      ErrPathIndexFailed,
+		},
+		{
+			name: "throws an error if the path does not exist",
+			path: "foo.bar.foobar",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": []interface{}{1, 2, 3},
+					},
+				},
+			},
+			expected: nil,
+			err:      ErrPropertyDoesNotExist,
+		},
+	}
+
+	for _, tc := range testcases {
+		tt.Run(tc.name, func(t *testing.T) {
+			val, err := tc.obj.GetSlice(tc.path)
+			testErr := compare.Errors(tc.err, err)
+			if testErr != nil {
+				t.Error(testErr)
+				return
+			}
+
+			if !compare.SliceStrict(val, tc.expected) {
+				t.Errorf("expected value: %v, got: %v", tc.expected, val)
+			}
+		})
+	}
+}
+
+func TestObject_GetObj(tt *testing.T) {
+	testcases := []struct {
+		name, path string
+		obj        Object
+		expected   Object
+		err        error
+	}{
+		{
+			name: "gets a string value from a simple object",
+			path: "foo",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": true,
+				},
+			},
+			expected: Object{"bar": true},
+			err:      nil,
+		},
+		{
+			name: "gets a string value from a nested object",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": map[string]interface{}{
+							"something": true,
+						},
+					},
+				},
+			},
+			expected: Object{"something": true},
+			err:      nil,
+		},
+		{
+			name: "throws an error if value isnt an Object",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": float64(1000),
+					},
+				},
+			},
+			expected: nil,
+			err:      NewTypeCastError(objType, float64Type),
+		},
+		{
+			name: "throws an error if the path exists but you cant index into it",
+			path: "foo.bar.baz",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": true,
+				},
+			},
+			expected: nil,
+			err:      ErrPathIndexFailed,
+		},
+		{
+			name: "throws an error if the path does not exist",
+			path: "foo.bar.foobar",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": map[string]interface{}{
+							"something": true,
+						},
+					},
+				},
+			},
+			expected: nil,
+			err:      ErrPropertyDoesNotExist,
+		},
+	}
+
+	for _, tc := range testcases {
+		tt.Run(tc.name, func(t *testing.T) {
+
+			val, err := tc.obj.GetObj(tc.path)
+			testErr := compare.Errors(tc.err, err)
+			if testErr != nil {
+				t.Error(testErr)
+				return
+			}
+
+			if !reflect.DeepEqual(val, tc.expected) {
+				t.Errorf("expected value: %v, got: %v", tc.expected, val)
+			}
+		})
+	}
+}
