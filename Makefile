@@ -1,2 +1,2 @@
 test:
-	go test --race github.com/dedwardstech/jsontest
+	go test --race ./...
