@@ -91,30 +91,30 @@ func (o Object) GetNumber(propertyPath string) (float64, error) {
 
 // GetInt64 is used to extract a number value, as a int64, from an object
 func (o Object) GetInt64(propertyPath string) (int64, error) {
-    val, err := parsePathValue(o, propertyPath)
-    if err != nil {
-        return int64(-1), err
-    }
+	val, err := parsePathValue(o, propertyPath)
+	if err != nil {
+		return int64(-1), err
+	}
 
-    num, ok := val.(int64)
-    if !ok {
-        return int64(-1), NewTypeCastError(int64Type, reflect.TypeOf(val))
-    }
+	num, ok := val.(int64)
+	if !ok {
+		return int64(-1), NewTypeCastError(int64Type, reflect.TypeOf(val))
+	}
 
-    return num, nil
+	return num, nil
 }
 
 // GetSlice extracts a slice from an object
 func (o Object) GetSlice(propertyPath string) ([]interface{}, error) {
-  val, err := parsePathValue(o, propertyPath)
+	val, err := parsePathValue(o, propertyPath)
 	if err != nil {
-    return nil, err
-  }
+		return nil, err
+	}
 
-  sl, ok := val.([]interface{})
-  if !ok {
-    return nil, NewTypeCastError(sliceType, reflect.TypeOf(val))
-  }
+	sl, ok := val.([]interface{})
+	if !ok {
+		return nil, NewTypeCastError(sliceType, reflect.TypeOf(val))
+	}
 
 	return sl, nil
 }
@@ -136,15 +136,15 @@ func (o Object) GetObj(propertyPath string) (Object, error) {
 
 // GetBool is used to extract a key whose value is an bool
 func (o Object) GetBool(propertyPath string) (bool, error) {
-    val, err := parsePathValue(o, propertyPath)
-    if err != nil {
-        return false, err
-    }
+	val, err := parsePathValue(o, propertyPath)
+	if err != nil {
+		return false, err
+	}
 
-    b, ok := val.(bool)
-    if !ok {
-        return false, NewTypeCastError(boolType, reflect.TypeOf(val))
-    }
+	b, ok := val.(bool)
+	if !ok {
+		return false, NewTypeCastError(boolType, reflect.TypeOf(val))
+	}
 
-    return b, nil
+	return b, nil
 }

@@ -1,11 +1,11 @@
 package jsont
 
 import (
-    "encoding/json"
-    "reflect"
-    "testing"
+	"encoding/json"
+	"reflect"
+	"testing"
 
-    "github.com/dedwardstech/test/compare"
+	"github.com/dedwardstech/test/compare"
 )
 
 func Test_Set(t *testing.T) {

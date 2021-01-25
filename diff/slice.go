@@ -1,50 +1,50 @@
 package diff
 
 import (
-    "fmt"
-    "strings"
+	"fmt"
+	"strings"
 
-    "github.com/dedwardstech/test/internal/count"
+	"github.com/dedwardstech/test/internal/count"
 )
 
 // SliceDiff is used to hold the results of diffing two slices.
 type SliceDiff struct {
-    AOnly []interface{}
-    BOnly []interface{}
+	AOnly []interface{}
+	BOnly []interface{}
 }
 
 func (d SliceDiff) Error() string {
-    aStr := ""
-    bStr := ""
-    if len(d.AOnly) > 0 {
-        diffStr := formatSliceStr(d.AOnly)
-        aStr += "values only in A: " + diffStr
-    }
+	aStr := ""
+	bStr := ""
+	if len(d.AOnly) > 0 {
+		diffStr := formatSliceStr(d.AOnly)
+		aStr += "values only in A: " + diffStr
+	}
 
-    if len(d.BOnly) > 0 {
-        diffStr := formatSliceStr(d.BOnly)
-        bStr += "values only in B: " + diffStr
-    }
+	if len(d.BOnly) > 0 {
+		diffStr := formatSliceStr(d.BOnly)
+		bStr += "values only in B: " + diffStr
+	}
 
-    if len(aStr) > 0 && len(bStr) > 0 {
-        return aStr + "; " + bStr
-    }
+	if len(aStr) > 0 && len(bStr) > 0 {
+		return aStr + "; " + bStr
+	}
 
-    return aStr + bStr
+	return aStr + bStr
 }
 
 func formatSliceStr(s []interface{}) string {
-    if len(s) == 0 {
-        return ""
-    }
+	if len(s) == 0 {
+		return ""
+	}
 
-    b := make([]string, len(s))
+	b := make([]string, len(s))
 
-    for i, v := range s {
-        b[i] = fmt.Sprintf("%v", v)
-    }
+	for i, v := range s {
+		b[i] = fmt.Sprintf("%v", v)
+	}
 
-    return strings.Join(b, ", ")
+	return strings.Join(b, ", ")
 }
 
 // Slice calculates the differences between two slices. It finds all of the values that are in A but not in B, and
@@ -65,44 +65,44 @@ func formatSliceStr(s []interface{}) string {
 //
 //   diff(a, b) = {2, 3, 3}
 func Slice(a, b []interface{}) error {
-    aOnly := make([]interface{}, 0)
-    bOnly := make([]interface{}, 0)
-    bCount := count.SliceItems(b)
+	aOnly := make([]interface{}, 0)
+	bOnly := make([]interface{}, 0)
+	bCount := count.SliceItems(b)
 
-    for _, elem := range a {
-        if c, ok := bCount[elem]; !ok || c == 0 {
-            aOnly = append(aOnly, elem)
+	for _, elem := range a {
+		if c, ok := bCount[elem]; !ok || c == 0 {
+			aOnly = append(aOnly, elem)
 
-            if c == 0 {
-                delete(bCount, elem)
-            }
-        } else {
-            bCount[elem]--
-        }
-    }
+			if c == 0 {
+				delete(bCount, elem)
+			}
+		} else {
+			bCount[elem]--
+		}
+	}
 
-    for key, c := range bCount {
-        if c > 0 {
-            for i := 0; i <= c; i++ {
-                bOnly = append(bOnly, key)
-            }
-        }
-    }
+	for key, c := range bCount {
+		if c > 0 {
+			for i := 0; i <= c; i++ {
+				bOnly = append(bOnly, key)
+			}
+		}
+	}
 
-    aOnlyLen, bOnlyLen := len(aOnly), len(bOnly)
-    if aOnlyLen > 0 || bOnlyLen > 0 {
-        err := SliceDiff{}
+	aOnlyLen, bOnlyLen := len(aOnly), len(bOnly)
+	if aOnlyLen > 0 || bOnlyLen > 0 {
+		err := SliceDiff{}
 
-        if aOnlyLen > 0 {
-            err.AOnly = aOnly
-        }
+		if aOnlyLen > 0 {
+			err.AOnly = aOnly
+		}
 
-        if bOnlyLen > 0 {
-            err.BOnly = bOnly
-        }
+		if bOnlyLen > 0 {
+			err.BOnly = bOnly
+		}
 
-        return err
-    }
+		return err
+	}
 
-    return nil
+	return nil
 }
