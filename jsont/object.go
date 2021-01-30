@@ -4,8 +4,10 @@ package jsont
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 var (
@@ -46,6 +48,31 @@ func (o *Object) Has(propertyPath string) (bool, error) {
 	_, err := parsePathValue(*o, propertyPath)
 	if err != nil {
 		return false, err
+	}
+
+	return true, nil
+}
+
+// HasKeys test whether the object has the given key paths available
+func (o Object) HasKeys(propertyPaths []string) (bool, error) {
+	errs := make([]string, 0)
+
+	for _, path := range propertyPaths {
+		present, err := o.Has(path)
+		if err != nil {
+			errs = append(errs, fmt.Sprintf("%s: %v", path, err))
+			continue
+		}
+
+		if !present {
+			errs = append(errs, fmt.Sprintf("%s: json path does not exist", path))
+			continue
+		}
+	}
+
+	if len(errs) > 0 {
+		errMsg := strings.Join(errs, "\n")
+		return false, errors.New(errMsg)
 	}
 
 	return true, nil

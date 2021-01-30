@@ -2,7 +2,8 @@ package jsont
 
 import (
 	"encoding/json"
-	"reflect"
+  "errors"
+  "reflect"
 	"testing"
 
 	"github.com/dedwardstech/test/compare"
@@ -53,7 +54,7 @@ func Test_Unmarshal(t *testing.T) {
 	}
 }
 
-func Test_Object_Has(tt *testing.T) {
+func TestObject_Has(tt *testing.T) {
 	tests := []struct {
 		name     string
 		obj      Object
@@ -122,6 +123,80 @@ func Test_Object_Has(tt *testing.T) {
 			if res != tc.expected {
 				t.Errorf("wanted result %v; got %v", tc.expected, err)
 				return
+			}
+		})
+	}
+}
+
+func TestObject_HasKeys(tt *testing.T) {
+	testcases := []struct {
+		name     string
+		obj      Object
+		keys     []string
+		expected bool
+		err      error
+	}{
+		{
+			name: "returns true if every path passed is present in the Object",
+			obj: Object{
+				"foo": true,
+				"bar": 1,
+				"baz": "str",
+			},
+			keys: []string{
+				"foo",
+				"bar",
+				"baz",
+			},
+			expected: true,
+			err:      nil,
+		},
+    {
+      name: "returns false if every path passed is not in the Object",
+      obj: Object{ "foo": true, "bar": 1, "baz": "str" },
+      keys: []string{
+        "foo",
+        "bar",
+        "baz",
+        "foobar",
+      },
+      expected: false,
+      err: errors.New("foobar: json path does not exist"),
+    },
+		{
+			name: "handles nested property paths",
+			obj: Object{
+				"foo": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"baz": true,
+					},
+				},
+				"baz": map[string]interface{}{
+					"bar": map[string]interface{}{
+						"foo": 1,
+					},
+				},
+			},
+			keys: []string{
+				"foo.bar.baz",
+				"baz.bar.foo",
+			},
+			expected: true,
+			err:      nil,
+		},
+	}
+
+	for _, tc := range testcases {
+		tt.Run(tc.name, func(t *testing.T) {
+			actual, err := tc.obj.HasKeys(tc.keys)
+			testErr := compare.Errors(tc.err, err)
+			if testErr != nil {
+				t.Error(testErr)
+				return
+			}
+
+			if tc.expected != actual {
+				t.Error("bad")
 			}
 		})
 	}
